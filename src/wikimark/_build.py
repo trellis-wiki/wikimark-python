@@ -116,6 +116,14 @@ ffibuilder.cdef(
     int wikimark_node_is_wikilink(cmark_node *node);
     const char *wikimark_node_get_wiki_target(cmark_node *node);
 
+    /* --- Frontmatter inspection --- */
+    typedef struct wikimark_frontmatter wikimark_frontmatter;
+    wikimark_frontmatter *wikimark_frontmatter_parse(
+        const char *text, size_t len);
+    const char *wikimark_frontmatter_get(
+        const wikimark_frontmatter *fm, const char *path);
+    void wikimark_frontmatter_free(wikimark_frontmatter *fm);
+
     /* --- Python-side callback trampolines ---
      * The `extern "Python"` declarations below let us implement
      * these functions in Python (via @ffi.def_extern) and still

@@ -40,6 +40,8 @@ __all__ = [
     "OPT_SMART",
     "OPT_UNSAFE",
     "render",
+    "read_frontmatter",
+    "Frontmatter",
     "Interwiki",
 ]
 
@@ -274,3 +276,75 @@ def render(
         return ffi.string(html_ptr).decode("utf-8")
     finally:
         lib.wikimark_free(html_ptr)
+
+
+# ---------- Frontmatter inspection ----------
+
+
+class Frontmatter:
+    """A parsed frontmatter tree.
+
+    Engines embedding wikimark often need to read a page's frontmatter
+    to drive variable and template resolution. ``Frontmatter`` wraps
+    libwikimark's native YAML parser so you don't have to reparse —
+    and so the Python binding sees the same values libwikimark does.
+
+    Scalar values are accessed via :meth:`get` with dot-notation
+    paths (``"title"``, ``"star.name"``, ``"moons.0"``,
+    ``"inputs.name.default"``).
+
+    Instances free their underlying C resources when garbage-collected.
+    They are safe to use as context managers::
+
+        with wikimark.read_frontmatter(source) as fm:
+            title = fm.get("title")
+    """
+
+    __slots__ = ("_ptr", "_source")
+
+    def __init__(self, ptr) -> None:  # type: ignore[no-untyped-def]
+        self._ptr = ptr
+        # Retain a reference to the underlying source bytes so the
+        # frontmatter's scalar pointers stay valid — libwikimark
+        # allocates strings from the input buffer when possible.
+        self._source: bytes | None = None
+
+    def get(self, path: str) -> str | None:
+        if self._ptr is None or self._ptr == ffi.NULL:
+            return None
+        result = lib.wikimark_frontmatter_get(self._ptr, path.encode("utf-8"))
+        if result == ffi.NULL:
+            return None
+        return ffi.string(result).decode("utf-8")
+
+    def close(self) -> None:
+        if self._ptr is not None and self._ptr != ffi.NULL:
+            lib.wikimark_frontmatter_free(self._ptr)
+        self._ptr = None
+        self._source = None
+
+    def __enter__(self) -> Frontmatter:
+        return self
+
+    def __exit__(self, *exc) -> None:  # type: ignore[no-untyped-def]
+        self.close()
+
+    def __del__(self) -> None:
+        self.close()
+
+
+def read_frontmatter(source: str) -> Frontmatter | None:
+    """Parse the leading YAML frontmatter block from a WikiMark source.
+
+    Returns ``None`` if the source has no frontmatter. Otherwise,
+    returns a :class:`Frontmatter` whose lifetime must be managed by
+    the caller (either via ``with`` or by letting Python garbage-
+    collect it).
+    """
+    encoded = source.encode("utf-8")
+    ptr = lib.wikimark_frontmatter_parse(encoded, len(encoded))
+    if ptr == ffi.NULL:
+        return None
+    fm = Frontmatter(ptr)
+    fm._source = encoded
+    return fm

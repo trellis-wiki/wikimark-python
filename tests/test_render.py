@@ -188,3 +188,62 @@ def test_empty_input() -> None:
 def test_gfm_basic_inline(source: str, needle: str) -> None:
     html = wikimark.render(source)
     assert needle in html
+
+
+# ---- Frontmatter reader ----
+
+
+def test_frontmatter_missing_returns_none() -> None:
+    assert wikimark.read_frontmatter("just plain body text") is None
+
+
+def test_frontmatter_scalar() -> None:
+    with wikimark.read_frontmatter("---\ntitle: Earth\n---\n\nbody") as fm:
+        assert fm is not None
+        assert fm.get("title") == "Earth"
+        assert fm.get("nonexistent") is None
+
+
+def test_frontmatter_nested_dot_path() -> None:
+    src = (
+        "---\n"
+        "star:\n"
+        "  name: Sol\n"
+        "  type: G2V\n"
+        "moons:\n"
+        "  - Luna\n"
+        "  - Phobos\n"
+        "---\n\nbody\n"
+    )
+    with wikimark.read_frontmatter(src) as fm:
+        assert fm is not None
+        assert fm.get("star.name") == "Sol"
+        assert fm.get("star.type") == "G2V"
+        assert fm.get("moons.0") == "Luna"
+        assert fm.get("moons.1") == "Phobos"
+
+
+def test_frontmatter_context_manager_closes() -> None:
+    fm = wikimark.read_frontmatter("---\na: 1\n---\n\nbody")
+    assert fm is not None
+    with fm:
+        assert fm.get("a") == "1"
+    # After close, queries return None rather than crashing.
+    assert fm.get("a") is None
+
+
+def test_frontmatter_input_defaults_exposed() -> None:
+    # Template authors use inputs.<name>.default; the public API
+    # exposes them via the same dot-notation the spec uses.
+    src = (
+        "---\n"
+        "inputs:\n"
+        "  greeting:\n"
+        "    default: hello\n"
+        "    required: true\n"
+        "---\nbody\n"
+    )
+    with wikimark.read_frontmatter(src) as fm:
+        assert fm is not None
+        assert fm.get("inputs.greeting.default") == "hello"
+        assert fm.get("inputs.greeting.required") == "true"
