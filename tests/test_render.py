@@ -232,6 +232,21 @@ def test_frontmatter_context_manager_closes() -> None:
     assert fm.get("a") is None
 
 
+def test_bare_brackets_are_literal() -> None:
+    # Per spec §8.5 rule 5: a bare [text] without paired brackets
+    # and without a matching reference definition is literal text.
+    # libwikimark follows GFM exactly here — no bare-bracket wiki
+    # link promotion.
+    assert wikimark.render("[PageName]") == "<p>[PageName]</p>\n"
+    assert wikimark.render("[multi word]") == "<p>[multi word]</p>\n"
+
+    # Reference-style links still work because the reference is
+    # defined.
+    ref_source = "[See here][ref]\n\n[ref]: /somewhere\n"
+    html = wikimark.render(ref_source)
+    assert 'href="/somewhere"' in html
+
+
 def test_frontmatter_input_defaults_exposed() -> None:
     # Template authors use inputs.<name>.default; the public API
     # exposes them via the same dot-notation the spec uses.
