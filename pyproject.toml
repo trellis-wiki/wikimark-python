@@ -1,20 +1,20 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=68", "wheel", "cffi>=1.17"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "wikimark"
 version = "0.1.0"
-description = "A Python implementation of WikiMark, a strict superset of GitHub Flavored Markdown with wiki functionality."
+description = "Python bindings to libwikimark, the C reference implementation of WikiMark."
 readme = "README.md"
-license = "MIT"
+license = { text = "MIT" }
 requires-python = ">=3.11"
 authors = [
     { name = "Trellis Wiki", email = "noreply@trellis-wiki.org" },
 ]
-keywords = ["markdown", "wikimark", "gfm", "commonmark", "wiki", "parser"]
+keywords = ["markdown", "wikimark", "gfm", "commonmark", "wiki", "parser", "cffi"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
@@ -25,10 +25,9 @@ classifiers = [
     "Topic :: Text Processing :: Markup",
     "Topic :: Text Processing :: Markup :: HTML",
     "Topic :: Text Processing :: Markup :: Markdown",
-    "Typing :: Typed",
 ]
 dependencies = [
-    "pyyaml>=6.0",
+    "cffi>=1.17",
 ]
 
 [project.optional-dependencies]
@@ -37,7 +36,6 @@ dev = [
     "pytest-cov>=5.0",
     "ruff>=0.4",
     "mypy>=1.10",
-    "types-PyYAML>=6.0",
 ]
 
 [project.urls]
@@ -47,11 +45,15 @@ Repository = "https://github.com/trellis-wiki/wikimark-python"
 Issues = "https://github.com/trellis-wiki/wikimark-python/issues"
 Specification = "https://github.com/trellis-wiki/wikimark"
 
-[project.scripts]
-wikimark = "wikimark.cli:main"
+[tool.setuptools]
+package-dir = {"" = "src"}
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/wikimark"]
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# CFFI's out-of-line build runs via setup.py's cffi_modules arg —
+# see setup.py. Requires LIBWIKIMARK_DIR (or ../libwikimark) to
+# point at a built libwikimark tree.
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

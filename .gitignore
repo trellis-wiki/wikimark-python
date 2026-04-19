@@ -3,11 +3,16 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# CFFI-generated (rebuilt on every `pip install -e .`)
+src/wikimark/_wikimark.c
+*.so
+
 # Distribution / packaging
 build/
 dist/
 *.egg-info/
 *.egg
+*.whl
 
 # Virtual environments
 .venv/

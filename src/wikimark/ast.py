@@ -1,1 +1,0 @@
-"""WikiMark AST node types."""
