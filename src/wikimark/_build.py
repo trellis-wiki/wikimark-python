@@ -84,6 +84,9 @@ ffibuilder.cdef(
         const char *base_url;
         const wikimark_interwiki *interwiki;
         int interwiki_count;
+        int max_template_expansions;
+        size_t max_expansion_output;
+        size_t max_render_output;
     } wikimark_config;
 
     wikimark_config wikimark_config_default(void);
