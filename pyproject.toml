@@ -1,0 +1,82 @@
+[build-system]
+requires = ["setuptools>=68", "wheel", "cffi>=1.17"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wikimark"
+version = "0.1.0"
+description = "Python bindings to libwikimark, the C reference implementation of WikiMark."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+authors = [
+    { name = "Trellis Wiki", email = "noreply@trellis-wiki.org" },
+]
+keywords = ["markdown", "wikimark", "gfm", "commonmark", "wiki", "parser", "cffi"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Markup",
+    "Topic :: Text Processing :: Markup :: HTML",
+    "Topic :: Text Processing :: Markup :: Markdown",
+]
+dependencies = [
+    "cffi>=1.17",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.4",
+    "mypy>=1.10",
+]
+
+[project.urls]
+Homepage = "https://github.com/trellis-wiki/wikimark-python"
+Documentation = "https://github.com/trellis-wiki/wikimark-python"
+Repository = "https://github.com/trellis-wiki/wikimark-python"
+Issues = "https://github.com/trellis-wiki/wikimark-python/issues"
+Specification = "https://github.com/trellis-wiki/wikimark"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# CFFI's out-of-line build runs via setup.py's cffi_modules arg —
+# see setup.py. Requires LIBWIKIMARK_DIR (or ../libwikimark) to
+# point at a built libwikimark tree.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "TCH",  # flake8-type-checking
+]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
